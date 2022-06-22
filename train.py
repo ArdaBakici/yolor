@@ -434,7 +434,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                     torch.save(ckpt, wdir / 'best_overall.pt')
                 #if best_fitness_p == fi_p:
                 #    torch.save(ckpt, wdir / 'best_p.pt')
-                3if best_fitness_r == fi_r:
+                #if best_fitness_r == fi_r:
                 #    torch.save(ckpt, wdir / 'best_r.pt')
                 #if best_fitness_ap50 == fi_ap50:
                 #    torch.save(ckpt, wdir / 'best_ap50.pt')
