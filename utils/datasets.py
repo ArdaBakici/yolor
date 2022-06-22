@@ -378,11 +378,11 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             for p in path if isinstance(path, list) else [path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    print(p)
-                    for file in tqdm(glob.iglob(str(p / '*.*'), recursive=False)):
-                        f.append(file)
+                    #print(p)
+                    #for file in tqdm(glob.iglob(str(p / '*.*'), recursive=False)):
+                    #    f.append(file)
                     #f += glob.glob(str(p / '**' / '*.*'), recursive=True)
-                    print("Finished Globbin")
+                    f += glob.glob(str(p / '*.*'))
                 elif p.is_file():  # file
                     with open(p, 'r') as t:
                         t = t.read().splitlines()
@@ -400,7 +400,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         if label_cache_loc == "normal":
             cache_path = str(Path(self.label_files[0]).parent) + '.cache3'  # cached labels
         else:
-            cache_path = label_cache_loc + (self.label_files[0].rpslit(os.sep, 2)[1]) + '.cache3'  # cached labels
+            cache_path = label_cache_loc + (self.label_files[0].rsplit(os.sep, 2)[1]) + '.cache3'  # cached labels
         if os.path.isfile(cache_path):
             cache = torch.load(cache_path)  # load
             if cache['hash'] != get_hash(self.label_files + self.img_files):  # dataset changed
