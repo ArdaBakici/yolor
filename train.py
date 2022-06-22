@@ -18,7 +18,7 @@ import yaml
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 import test  # import test.py to get mAP after each epoch
 from models.yolo import Model
@@ -208,7 +208,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
     # Trainloader
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect,
-                                            rank=rank, world_size=opt.world_size, workers=opt.workers)
+                                            rank=rank, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc))
     mlc = np.concatenate(dataset.labels, 0)[:, 0].max()  # max label class
     nb = len(dataloader)  # number of batches
     assert mlc < nc, 'Label class %g exceeds nc=%g in %s. Possible class labels are 0-%g' % (mlc, nc, opt.data, nc - 1)
@@ -218,7 +218,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         ema.updates = start_epoch * nb // accumulate  # set EMA updates
         testloader = create_dataloader(test_path, imgsz_test, batch_size*2, gs, opt,
                                        hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True,
-                                       rank=-1, world_size=opt.world_size, workers=opt.workers)[0]  # testloader
+                                       rank=-1, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc))[0]  # testloader
 
         if not opt.resume:
             labels = np.concatenate(dataset.labels, 0)
@@ -428,28 +428,28 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     torch.save(ckpt, best)
-                if (best_fitness == fi) and (epoch >= (200)):
-                    torch.save(ckpt, wdir / 'best_{:03d}.pt'.format(epoch))
+                #if (best_fitness == fi) and (epoch >= (200)):
+                #    torch.save(ckpt, wdir / 'best_{:03d}.pt'.format(epoch))
                 if best_fitness == fi:
                     torch.save(ckpt, wdir / 'best_overall.pt')
-                if best_fitness_p == fi_p:
-                    torch.save(ckpt, wdir / 'best_p.pt')
-                if best_fitness_r == fi_r:
-                    torch.save(ckpt, wdir / 'best_r.pt')
-                if best_fitness_ap50 == fi_ap50:
-                    torch.save(ckpt, wdir / 'best_ap50.pt')
-                if best_fitness_ap == fi_ap:
-                    torch.save(ckpt, wdir / 'best_ap.pt')
-                if best_fitness_f == fi_f:
-                    torch.save(ckpt, wdir / 'best_f.pt')
+                #if best_fitness_p == fi_p:
+                #    torch.save(ckpt, wdir / 'best_p.pt')
+                3if best_fitness_r == fi_r:
+                #    torch.save(ckpt, wdir / 'best_r.pt')
+                #if best_fitness_ap50 == fi_ap50:
+                #    torch.save(ckpt, wdir / 'best_ap50.pt')
+                #if best_fitness_ap == fi_ap:
+                #    torch.save(ckpt, wdir / 'best_ap.pt')
+                #if best_fitness_f == fi_f:
+                #    torch.save(ckpt, wdir / 'best_f.pt')
                 if epoch == 0:
                     torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
-                if ((epoch+1) % 25) == 0:
-                    torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
-                if epoch >= (epochs-5):
-                    torch.save(ckpt, wdir / 'last_{:03d}.pt'.format(epoch))
-                elif epoch >= 420:
-                    torch.save(ckpt, wdir / 'last_{:03d}.pt'.format(epoch))
+                #if ((epoch+1) % 25) == 0:
+                #    torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
+                #if epoch >= (epochs-5):
+                #    torch.save(ckpt, wdir / 'last_{:03d}.pt'.format(epoch))
+                #elif epoch >= 420:
+                #    torch.save(ckpt, wdir / 'last_{:03d}.pt'.format(epoch))
                 del ckpt
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
@@ -508,6 +508,7 @@ if __name__ == '__main__':
     parser.add_argument('--project', default='runs/train', help='save to project/name')
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
+    parser.add_argument('--cache-loc', type=str, default='normal', help='Location to cache dataset')
     opt = parser.parse_args()
 
     # Set DDP variables
