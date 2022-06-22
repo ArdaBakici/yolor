@@ -379,7 +379,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
                     print(p)
-                    for file in tqdm(glob.iglob(str(p / '**' / '*.*'), recursive=False)):
+                    for file in tqdm(glob.iglob(str(p / '*.*'), recursive=False)):
                         f.append(file)
                     #f += glob.glob(str(p / '**' / '*.*'), recursive=True)
                     print("Finished Globbin")
