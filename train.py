@@ -208,7 +208,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
     # Trainloader
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect,
-                                            rank=rank, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc)
+                                            rank=rank, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc, bypass_check=opt.bypass_cache_check)
     mlc = np.concatenate(dataset.labels, 0)[:, 0].max()  # max label class
     nb = len(dataloader)  # number of batches
     assert mlc < nc, 'Label class %g exceeds nc=%g in %s. Possible class labels are 0-%g' % (mlc, nc, opt.data, nc - 1)
@@ -218,7 +218,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         ema.updates = start_epoch * nb // accumulate  # set EMA updates
         testloader = create_dataloader(test_path, imgsz_test, batch_size*2, gs, opt,
                                        hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True,
-                                       rank=-1, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc)[0]  # testloader
+                                       rank=-1, world_size=opt.world_size, workers=opt.workers, cache_loc=opt.cache_loc, bypass_check=opt.bypass_cache_check)[0]  # testloader
 
         if not opt.resume:
             labels = np.concatenate(dataset.labels, 0)
@@ -509,6 +509,8 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--cache-loc', type=str, default='normal', help='Location to cache dataset')
+    parser.add_argument('--bypass-cache-check', action='store_true', help='Bypass cache check (Only use if you are use that cache is same for dataset)')
+    bypass_cache_check
     opt = parser.parse_args()
 
     # Set DDP variables

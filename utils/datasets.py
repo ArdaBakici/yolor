@@ -59,7 +59,7 @@ def exif_size(img):
 
 
 def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=False, cache=False, pad=0.0, rect=False,
-                      rank=-1, world_size=1, workers=8, cache_loc="normal"):
+                      rank=-1, world_size=1, workers=8, cache_loc="normal", bypass_check=False):
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     with torch_distributed_zero_first(rank):
         dataset = LoadImagesAndLabels(path, imgsz, batch_size,
@@ -71,7 +71,8 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
                                       stride=int(stride),
                                       pad=pad,
                                       rank=rank,
-                                      label_cache_loc=cache_loc)
+                                      label_cache_loc=cache_loc,
+                                      bypass_cache_check=bypass_check)
 
     batch_size = min(batch_size, len(dataset))
     nw = min([os.cpu_count() // world_size, batch_size if batch_size > 1 else 0, workers])  # number of workers
@@ -358,7 +359,7 @@ class LoadStreams:  # multiple IP or RTSP cameras
 
 class LoadImagesAndLabels(Dataset):  # for training/testing
     def __init__(self, path, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
-                 cache_images=False, single_cls=False, stride=32, pad=0.0, rank=-1, label_cache_loc="normal"):
+                 cache_images=False, single_cls=False, stride=32, pad=0.0, rank=-1, label_cache_loc="normal", bypass_cache_check=False):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -403,8 +404,9 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             cache_path = label_cache_loc + (self.label_files[0].rsplit(os.sep, 2)[1]) + '.cache3'  # cached labels
         if os.path.isfile(cache_path):
             cache = torch.load(cache_path)  # load
-            if cache['hash'] != get_hash(self.label_files + self.img_files):  # dataset changed
-                cache = self.cache_labels(cache_path)  # re-cache
+            if not bypass_cache_check:
+                if cache['hash'] != get_hash(self.label_files + self.img_files):  # dataset changed
+                    cache = self.cache_labels(cache_path)  # re-cache
         else:
             cache = self.cache_labels(cache_path)  # cache
 
