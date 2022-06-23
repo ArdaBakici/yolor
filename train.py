@@ -510,7 +510,6 @@ if __name__ == '__main__':
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--cache-loc', type=str, default='normal', help='Location to cache dataset')
     parser.add_argument('--bypass-cache-check', action='store_true', help='Bypass cache check (Only use if you are use that cache is same for dataset)')
-    bypass_cache_check
     opt = parser.parse_args()
 
     # Set DDP variables
