@@ -329,7 +329,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
             if rank in [-1, 0]:
                 mloss = (mloss * i + loss_items) / (i + 1)  # update mean losses
                 mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
-                s = f"{epoch}/{epochs-1} {mem} {('%8.4g' * 4)% *mloss}"
+                s = f"{epoch}/{epochs-1} {mem} {('%8.4g' * 4)% (*mloss)}"
                 pbar.set_description(s)
 
                 # Plot
